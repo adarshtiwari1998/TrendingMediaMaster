@@ -237,7 +237,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         youtube: await youtubeService.checkHealth(),
         drive: await driveService.checkHealth(),
         tts: await ttsService.checkHealth(),
-        scheduler: schedulerService.isRunning()
+        scheduler: schedulerService.isSystemRunning()
       };
       
       res.json(health);
@@ -256,7 +256,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         currentJobs,
         nextScheduled,
-        isActive: schedulerService.isRunning()
+        isActive: schedulerService.isSystemRunning()
       });
     } catch (error) {
       console.error("Error fetching pipeline status:", error);

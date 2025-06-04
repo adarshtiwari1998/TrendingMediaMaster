@@ -254,6 +254,10 @@ export class SchedulerService {
     return this.isRunning;
   }
 
+  isSystemRunning(): boolean {
+    return this.isRunning;
+  }
+
   getJobStatus(): Record<string, boolean> {
     const status: Record<string, boolean> = {};
     for (const [name, job] of this.jobs.entries()) {
