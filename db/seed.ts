@@ -116,142 +116,72 @@ async function seed() {
 
     // Create some sample trending topics
     console.log("📰 Creating sample trending topics...");
-    await db.insert(trendingTopics).values([
-      {
-        title: "AI Revolution in Healthcare: New Breakthroughs in Medical Diagnosis",
-        description: "Latest developments in artificial intelligence are transforming how doctors diagnose diseases, with new AI models showing 95% accuracy in early cancer detection.",
-        source: "Tech News",
-        score: 95,
-        category: "Technology",
-        keywords: ["AI", "healthcare", "medical", "diagnosis", "cancer"],
-        used: false
-      },
-      {
-        title: "Climate Summit 2024: World Leaders Announce Ambitious Green Energy Goals",
-        description: "Global leaders unite at the Climate Summit to announce unprecedented investments in renewable energy and carbon reduction targets for the next decade.",
-        source: "World News",
-        score: 88,
-        category: "Environment",
-        keywords: ["climate", "summit", "renewable energy", "carbon", "environment"],
-        used: false
-      },
-      {
-        title: "Space Exploration Milestone: Mars Mission Discovers Signs of Ancient Water",
-        description: "NASA's latest Mars rover has uncovered compelling evidence of ancient water systems on Mars, bringing us closer to understanding the planet's potential for past life.",
-        source: "Science News",
-        score: 92,
-        category: "Science",
-        keywords: ["space", "Mars", "NASA", "water", "exploration"],
-        used: false
-      },
-      {
-        title: "Global Economy Update: Markets React to New Trade Agreements",
-        description: "International markets show positive response to newly signed trade agreements between major economies, signaling potential economic growth.",
-        source: "Business News",
-        score: 78,
-        category: "Business",
-        keywords: ["economy", "trade", "markets", "business", "growth"],
-        used: false
-      },
-      {
-        title: "Breakthrough in Quantum Computing: New Processor Achieves Record Performance",
-        description: "Scientists unveil a revolutionary quantum processor that could accelerate computing capabilities and solve complex problems in minutes instead of years.",
-        source: "Tech News",
-        score: 90,
-        category: "Technology",
-        keywords: ["quantum", "computing", "processor", "technology", "breakthrough"],
-        used: false
-      }
-    ]);
+    
+    // Clear existing sample data and insert fresh data
+    await db.execute(sql`DELETE FROM trending_topics WHERE source IN ('Tech News', 'World News', 'Science News', 'Business News')`);
+    
+    // Use raw SQL to insert data with all required fields
+    await db.execute(sql`
+      INSERT INTO trending_topics (title, description, search_volume, priority, category, source, url, score, keywords, used)
+      VALUES 
+      ('AI Revolution in Healthcare: New Breakthroughs in Medical Diagnosis', 
+       'Latest developments in artificial intelligence are transforming how doctors diagnose diseases, with new AI models showing 95% accuracy in early cancer detection.', 
+       85000, 'high', 'Technology', 'Tech News', 'https://technews.com/ai-healthcare', 95, 
+       ARRAY['AI', 'healthcare', 'medical', 'diagnosis', 'cancer'], false),
+      ('Climate Summit 2024: World Leaders Announce Ambitious Green Energy Goals', 
+       'Global leaders unite at the Climate Summit to announce unprecedented investments in renewable energy and carbon reduction targets for the next decade.', 
+       62000, 'high', 'Environment', 'World News', 'https://worldnews.com/climate-summit', 88, 
+       ARRAY['climate', 'summit', 'renewable energy', 'carbon', 'environment'], false),
+      ('Space Exploration Milestone: Mars Mission Discovers Signs of Ancient Water', 
+       'NASA''s latest Mars rover has uncovered compelling evidence of ancient water systems on Mars, bringing us closer to understanding the planet''s potential for past life.', 
+       74000, 'high', 'Science', 'Science News', 'https://spacenews.com/mars-water', 92, 
+       ARRAY['space', 'Mars', 'NASA', 'water', 'exploration'], false),
+      ('Global Economy Update: Markets React to New Trade Agreements', 
+       'International markets show positive response to newly signed trade agreements between major economies, signaling potential economic growth.', 
+       45000, 'medium', 'Business', 'Business News', 'https://businessnews.com/trade-agreements', 78, 
+       ARRAY['economy', 'trade', 'markets', 'business', 'growth'], false),
+      ('Breakthrough in Quantum Computing: New Processor Achieves Record Performance', 
+       'Scientists unveil a revolutionary quantum processor that could accelerate computing capabilities and solve complex problems in minutes instead of years.', 
+       67000, 'high', 'Technology', 'Tech News', 'https://technews.com/quantum-computing', 90, 
+       ARRAY['quantum', 'computing', 'processor', 'technology', 'breakthrough'], false)
+    `);
 
     // Create API configurations
     console.log("🔧 Creating API configurations...");
-    await db.insert(apiConfigurations).values([
-      {
-        service: "gemini",
-        isActive: true,
-        config: {
-          model: "gemini-pro",
-          temperature: 0.7,
-          maxTokens: 2048
-        }
-      },
-      {
-        service: "youtube",
-        isActive: true,
-        config: {
-          defaultCategory: "25",
-          defaultPrivacy: "public",
-          uploadQuality: "hd1080"
-        }
-      },
-      {
-        service: "drive",
-        isActive: true,
-        config: {
-          folderPrefix: "AutoTube_Videos",
-          shareByDefault: false
-        }
-      },
-      {
-        service: "tts",
-        isActive: true,
-        config: {
-          voice: "en-IN-Standard-D",
-          languageCode: "en-IN",
-          speakingRate: 0.9,
-          pitch: -2.0
-        }
-      }
-    ]);
+    await db.execute(sql`DELETE FROM api_configurations WHERE service IN ('gemini', 'youtube', 'drive', 'tts')`);
+    await db.execute(sql`
+      INSERT INTO api_configurations (service, is_active, config)
+      VALUES 
+      ('gemini', true, '{"model": "gemini-pro", "temperature": 0.7, "maxTokens": 2048}'::jsonb),
+      ('youtube', true, '{"defaultCategory": "25", "defaultPrivacy": "public", "uploadQuality": "hd1080"}'::jsonb),
+      ('drive', true, '{"folderPrefix": "AutoTube_Videos", "shareByDefault": false}'::jsonb),
+      ('tts', true, '{"voice": "en-IN-Standard-D", "languageCode": "en-IN", "speakingRate": 0.9, "pitch": -2.0}'::jsonb)
+    `);
 
     // Create default schedules
     console.log("⏰ Creating default schedules...");
-    await db.insert(schedules).values([
-      {
-        name: "Daily Video Creation",
-        cronExpression: "30 12 * * *",
-        jobType: "daily_video",
-        isActive: true,
-        config: {
-          timezone: "Asia/Kolkata",
-          description: "Create and publish daily trending news video at 6:00 PM IST"
-        }
-      },
-      {
-        name: "News Analysis",
-        cronExpression: "0 */4 * * *",
-        jobType: "news_analysis",
-        isActive: true,
-        config: {
-          timezone: "Asia/Kolkata",
-          description: "Analyze trending news every 4 hours"
-        }
-      },
-      {
-        name: "Cleanup",
-        cronExpression: "0 2 * * *",
-        jobType: "cleanup",
-        isActive: true,
-        config: {
-          timezone: "Asia/Kolkata",
-          description: "Clean up old files and data daily at 2 AM"
-        }
-      }
-    ]);
+    await db.execute(sql`DELETE FROM schedules WHERE name IN ('Daily Video Creation', 'News Analysis', 'Cleanup')`);
+    await db.execute(sql`
+      INSERT INTO schedules (name, cron_expression, job_type, is_active, config)
+      VALUES 
+      ('Daily Video Creation', '30 12 * * *', 'daily_video', true, 
+       '{"timezone": "Asia/Kolkata", "description": "Create and publish daily trending news video at 6:00 PM IST"}'::jsonb),
+      ('News Analysis', '0 */4 * * *', 'news_analysis', true, 
+       '{"timezone": "Asia/Kolkata", "description": "Analyze trending news every 4 hours"}'::jsonb),
+      ('Cleanup', '0 2 * * *', 'cleanup', true, 
+       '{"timezone": "Asia/Kolkata", "description": "Clean up old files and data daily at 2 AM"}'::jsonb)
+    `);
 
     // Create a sample video (optional)
     console.log("🎬 Creating sample video entry...");
-    await db.insert(videos).values([
-      {
-        title: "Welcome to AutoTube - Your AI-Powered Video Creation System",
-        description: "This is a sample video created by the AutoTube system to demonstrate the automated video creation pipeline.",
-        status: "completed",
-        trendingTopic: "AI Video Automation",
-        trendingScore: 85,
-        duration: "2:30"
-      }
-    ]);
+    await db.execute(sql`DELETE FROM videos WHERE title = 'Welcome to AutoTube - Your AI-Powered Video Creation System'`);
+    await db.execute(sql`
+      INSERT INTO videos (title, description, status, trending_topic, trending_score, duration)
+      VALUES 
+      ('Welcome to AutoTube - Your AI-Powered Video Creation System', 
+       'This is a sample video created by the AutoTube system to demonstrate the automated video creation pipeline.', 
+       'completed', 'AI Video Automation', 85, '2:30')
+    `);
 
     console.log("✅ Database seeding completed successfully!");
     console.log(`
