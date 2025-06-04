@@ -7,10 +7,112 @@ import {
   apiConfigurations, 
   schedules 
 } from "../shared/schema";
+import { sql } from "drizzle-orm";
 
 async function seed() {
   try {
     console.log("🌱 Starting database seeding...");
+
+    // Create tables if they don't exist
+    console.log("📋 Ensuring all tables exist...");
+    
+    // Create users table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        username TEXT NOT NULL UNIQUE,
+        password TEXT NOT NULL
+      )
+    `);
+
+    // Create videos table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS videos (
+        id SERIAL PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT,
+        script TEXT,
+        status TEXT NOT NULL DEFAULT 'pending',
+        youtube_id TEXT,
+        thumbnail_url TEXT,
+        drive_file_id TEXT,
+        views INTEGER DEFAULT 0,
+        likes INTEGER DEFAULT 0,
+        duration TEXT,
+        trending_topic TEXT,
+        trending_score INTEGER,
+        created_at TIMESTAMP DEFAULT NOW(),
+        published_at TIMESTAMP,
+        scheduled_at TIMESTAMP
+      )
+    `);
+
+    // Create trending_topics table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS trending_topics (
+        id SERIAL PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT,
+        search_volume INTEGER NOT NULL DEFAULT 0,
+        priority TEXT DEFAULT 'medium',
+        category TEXT,
+        source TEXT,
+        trending_data JSONB,
+        status TEXT DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT NOW(),
+        url TEXT,
+        score INTEGER DEFAULT 0,
+        keywords TEXT[],
+        analyzed_at TIMESTAMP DEFAULT NOW(),
+        used BOOLEAN DEFAULT false
+      )
+    `);
+
+    // Create automation_jobs table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS automation_jobs (
+        id SERIAL PRIMARY KEY,
+        type TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending',
+        video_id INTEGER,
+        payload JSONB,
+        result JSONB,
+        error TEXT,
+        started_at TIMESTAMP,
+        completed_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    // Create api_configurations table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS api_configurations (
+        id SERIAL PRIMARY KEY,
+        service TEXT NOT NULL UNIQUE,
+        api_key TEXT,
+        config JSONB,
+        is_active BOOLEAN DEFAULT true,
+        last_used TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    // Create schedules table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS schedules (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        cron_expression TEXT NOT NULL,
+        job_type TEXT NOT NULL,
+        is_active BOOLEAN DEFAULT true,
+        config JSONB,
+        last_run TIMESTAMP,
+        next_run TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    console.log("✅ All tables created or verified successfully!");
 
     // Create some sample trending topics
     console.log("📰 Creating sample trending topics...");
